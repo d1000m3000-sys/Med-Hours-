@@ -1,4 +1,4 @@
-const CACHE_NAME = 'med-hours-cache-v1';
+const CACHE_NAME = 'med-hours-v1-1-cache';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
