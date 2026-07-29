@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#2563eb">
-
     <title>Med Hours</title>
 
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
+    <meta name="theme-color" content="#2563eb">
 </head>
 
 <body>
@@ -18,14 +18,46 @@
     <h1>💊 Med Hours</h1>
 
     <p class="description">
-        احسب الوقت منذ آخر جرعة دواء بسهولة.
+        احسب الوقت منذ آخر جرعة دواء
     </p>
+
+    <div class="card">
+
+        <h2>إدخال آخر جرعة</h2>
+
+        <select id="hour">
+            <option>1</option><option>2</option><option>3</option>
+            <option>4</option><option>5</option><option>6</option>
+            <option>7</option><option>8</option><option>9</option>
+            <option>10</option><option>11</option><option>12</option>
+        </select>
+
+        <select id="minute"></select>
+
+        <select id="ampm">
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+        </select>
+
+        <br><br>
+
+        <button id="saveManual">
+            حفظ الوقت
+        </button>
+
+        <br><br>
+
+        <button id="saveDose">
+            أخذت الدواء الآن
+        </button>
+
+    </div>
 
     <div class="card">
 
         <h2>آخر جرعة</h2>
 
-        <div id="lastDose" class="time">
+        <div id="lastDose">
             لا توجد بيانات
         </div>
 
@@ -35,19 +67,34 @@
 
         <h2>الوقت منذ آخر جرعة</h2>
 
-        <div id="elapsed" class="elapsed">
+        <div id="elapsed">
             --
         </div>
 
     </div>
 
-    <button id="saveDose">
-        أخذت الدواء الآن
-    </button>
-
 </div>
+
+<script>
+
+const minuteSelect=document.getElementById("minute");
+
+for(let i=0;i<60;i++){
+
+let option=document.createElement("option");
+
+option.value=i;
+
+option.textContent=i.toString().padStart(2,"0");
+
+minuteSelect.appendChild(option);
+
+}
+
+</script>
 
 <script src="script.js"></script>
 
 </body>
+
 </html>
