@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+
+    <title>Med Hours</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>💊 Med Hours</h1>
+
+    <p class="description">
+        احسب الوقت منذ آخر جرعة دواء بسهولة.
+    </p>
+
+    <div class="card">
+
+        <h2>آخر جرعة</h2>
+
+        <div id="lastDose" class="time">
+            لا توجد بيانات
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <h2>الوقت منذ آخر جرعة</h2>
+
+        <div id="elapsed" class="elapsed">
+            --
+        </div>
+
+    </div>
+
+    <button id="saveDose">
+        أخذت الدواء الآن
+    </button>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
