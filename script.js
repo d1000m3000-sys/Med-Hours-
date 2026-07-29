@@ -1,50 +1,96 @@
 const lastDoseElement = document.getElementById("lastDose");
 const elapsedElement = document.getElementById("elapsed");
+const nextDoseElement = document.getElementById("nextDose");
+const remainingElement = document.getElementById("remaining");
 
-const saveDoseButton = document.getElementById("saveDose");
 const saveManualButton = document.getElementById("saveManual");
+const saveDoseButton = document.getElementById("saveDose");
 
+const dateInput = document.getElementById("date");
 const hourSelect = document.getElementById("hour");
 const minuteSelect = document.getElementById("minute");
 const ampmSelect = document.getElementById("ampm");
+const intervalSelect = document.getElementById("interval");
 
 
-// تحويل الوقت إلى صيغة عربية
+// إنشاء دقائق من 00 إلى 59
+for (let i = 0; i < 60; i++) {
+
+    let option = document.createElement("option");
+
+    option.value = i;
+
+    option.textContent = i.toString().padStart(2, "0");
+
+    minuteSelect.appendChild(option);
+
+}
+
+
+// وضع تاريخ اليوم تلقائياً
+let today = new Date();
+
+dateInput.value = today.toISOString().split("T")[0];
+
+
+
+// تحويل الوقت إلى عرض جميل
 function formatTime(date) {
 
     return date.toLocaleTimeString("ar-IQ", {
+
         hour: "2-digit",
+
         minute: "2-digit"
+
     });
 
 }
 
 
-// حفظ الوقت
-function saveTime(date) {
+// حفظ الجرعة
+function saveDoseTime(time) {
+
 
     localStorage.setItem(
         "lastDose",
-        date.toISOString()
+        time.toISOString()
     );
 
-    updateTime();
+
+    localStorage.setItem(
+        "interval",
+        intervalSelect.value
+    );
+
+
+    update();
+
 
 }
+
 
 
 // زر أخذ الدواء الآن
 saveDoseButton.addEventListener("click", () => {
 
-    const now = new Date();
 
-    saveTime(now);
+    let now = new Date();
+
+
+    saveDoseTime(now);
+
 
 });
 
 
-// زر حفظ الوقت اليدوي
+
+
+// حفظ وقت يدوي
 saveManualButton.addEventListener("click", () => {
+
+
+    let parts = dateInput.value.split("-");
 
 
     let hour = Number(hourSelect.value);
@@ -53,8 +99,6 @@ saveManualButton.addEventListener("click", () => {
 
     let ampm = ampmSelect.value;
 
-
-    const now = new Date();
 
 
     if (ampm === "PM" && hour !== 12) {
@@ -71,41 +115,62 @@ saveManualButton.addEventListener("click", () => {
     }
 
 
-    const selectedTime = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
+
+    let selected = new Date(
+
+        parts[0],
+
+        parts[1] - 1,
+
+        parts[2],
+
         hour,
+
         minute
+
     );
 
 
-    saveTime(selectedTime);
+    saveDoseTime(selected);
+
 
 
 });
 
 
 
-// تحديث العداد
-function updateTime() {
 
 
-    const saved = localStorage.getItem("lastDose");
+// تحديث البيانات
+function update() {
+
+
+    let saved = localStorage.getItem("lastDose");
 
 
     if (!saved) {
 
+
         lastDoseElement.textContent = "لا توجد بيانات";
 
         elapsedElement.textContent = "--";
+
+        nextDoseElement.textContent = "--";
+
+        remainingElement.textContent = "--";
 
         return;
 
     }
 
 
-    const lastDose = new Date(saved);
+
+    let lastDose = new Date(saved);
+
+
+
+    let now = new Date();
+
 
 
     lastDoseElement.textContent =
@@ -113,60 +178,103 @@ function updateTime() {
 
 
 
-    const now = new Date();
-
-
-    let difference = now - lastDose;
+    let passed = now - lastDose;
 
 
 
-    if (difference < 0) {
+    if (passed < 0) {
 
-        difference = 0;
+        passed = 0;
 
     }
 
 
-    const totalMinutes =
-        Math.floor(difference / 60000);
+
+    let passedMinutes =
+        Math.floor(passed / 60000);
 
 
 
-    const hours =
-        Math.floor(totalMinutes / 60);
+    let passedHours =
+        Math.floor(passedMinutes / 60);
 
 
 
-    const minutes =
-        totalMinutes % 60;
+    let passedRemain =
+        passedMinutes % 60;
 
 
 
     elapsedElement.textContent =
-        `${hours} ساعة و ${minutes} دقيقة`;
+        `${passedHours} ساعة و ${passedRemain} دقيقة`;
+
+
+
+
+
+    // حساب الجرعة القادمة
+
+    let interval =
+        Number(localStorage.getItem("interval")) || 8;
+
+
+
+    let next =
+        new Date(lastDose.getTime() + interval * 60 * 60 * 1000);
+
+
+
+    nextDoseElement.textContent =
+        formatTime(next);
+
+
+
+
+
+    let remaining =
+        next - now;
+
+
+
+    if (remaining <= 0) {
+
+
+        remainingElement.textContent =
+            "موعد الجرعة حان الآن 💊";
+
+
+    } else {
+
+
+        let remainingMinutes =
+            Math.floor(remaining / 60000);
+
+
+
+        let rh =
+            Math.floor(remainingMinutes / 60);
+
+
+
+        let rm =
+            remainingMinutes % 60;
+
+
+
+        remainingElement.textContent =
+            `${rh} ساعة و ${rm} دقيقة`;
+
+    }
+
 
 }
 
 
 
-// تحديث عند فتح التطبيق
-updateTime();
+
+// تشغيل عند فتح التطبيق
+update();
 
 
 // تحديث كل دقيقة
-setInterval(updateTime, 60000);
-
-
-
-// تشغيل PWA
-if ("serviceWorker" in navigator) {
-
-    window.addEventListener("load", () => {
-
-        navigator.serviceWorker.register(
-            "service-worker.js"
-        );
-
-    });
-
-}
+setInterval(update, 60000);
