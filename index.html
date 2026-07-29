@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light" data-color="default">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#006a60">
-    <meta name="description" content="تطبيق متابعة أوقات ومواعيد جرعات الأدوية بسهولة">
-    <title>Med Hours - حاسبة مواعيد الأدوية</title>
+    <meta name="description" content="تطبيق متابعة أوقات ومواعيد جرعات الأدوية بسهولة وبدقة">
+    <title>Med Hours v1.1 - حاسبة مواعيد الأدوية</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="stylesheet" href="style.css">
@@ -14,93 +14,126 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-content">
+            <span class="splash-logo">💊</span>
+            <h2>Med Hours</h2>
+            <p>الإصدار 1.1</p>
+            <div class="spinner"></div>
+        </div>
+    </div>
+
     <div class="app-container">
+        <!-- Header -->
         <header class="app-header">
             <div class="header-top">
                 <div class="brand">
                     <span class="app-icon">💊</span>
-                    <h1>Med Hours</h1>
+                    <div>
+                        <h1>Med Hours</h1>
+                        <span class="version-badge">v1.1</span>
+                    </div>
                 </div>
-                <button id="themeToggleBtn" class="icon-button" aria-label="تبديل الوضع الليلي">
-                    <span class="theme-icon">🌙</span>
-                </button>
+                <div class="header-actions">
+                    <button id="installAppBtn" class="btn btn-small btn-accent hidden" aria-label="تثبيت التطبيق">📲 <span data-i18n="installApp">تثبيت التطبيق</span></button>
+                    <button id="langToggleBtn" class="icon-button" aria-label="Language Toggle">🌐</button>
+                    <button id="themeToggleBtn" class="icon-button" aria-label="تبديل الوضع الليلي">🌙</button>
+                    <button id="aboutAppBtn" class="icon-button" aria-label="حول التطبيق">ℹ️</button>
+                </div>
             </div>
-            <p class="subtitle">احسب وقت الجرعات بسهولة</p>
+            <p class="subtitle" data-i18n="subtitle">احسب وقت الجرعات بسهولة</p>
         </header>
 
+        <!-- Theme Color Picker -->
+        <section class="card theme-picker-card">
+            <span class="label-sm" data-i18n="chooseThemeColor">اختر لون التطبيق:</span>
+            <div class="color-options">
+                <button class="color-btn color-default active" data-color="default" title="Teal"></button>
+                <button class="color-btn color-blue" data-color="blue" title="Blue"></button>
+                <button class="color-btn color-purple" data-color="purple" title="Purple"></button>
+                <button class="color-btn color-green" data-color="green" title="Green"></button>
+                <button class="color-btn color-orange" data-color="orange" title="Orange"></button>
+            </div>
+        </section>
+
+        <!-- Medication Selector Card -->
         <section class="medication-selector-card card">
             <div class="field-group">
-                <label for="medSelect">اختر الدواء الحالي:</label>
+                <label for="medSelect" data-i18n="selectMed">اختر الدواء الحالي:</label>
                 <div class="select-action-row">
                     <select id="medSelect" class="form-control"></select>
-                    <button id="addMedBtn" class="btn btn-secondary">+ دواء جديد</button>
-                    <button id="deleteMedBtn" class="btn btn-danger-icon" aria-label="حذف الدواء الحالي">🗑️</button>
+                    <button id="addMedBtn" class="btn btn-secondary">+ <span data-i18n="newMed">دواء جديد</span></button>
+                    <button id="deleteMedBtn" class="btn btn-danger-icon" aria-label="حذف الدواء">🗑️</button>
                 </div>
             </div>
         </section>
 
         <main class="main-content">
+            <!-- Input Form Card -->
             <section class="input-card card">
-                <h2>تسجيل الجرعة</h2>
+                <h2 data-i18n="recordDose">تسجيل الجرعة</h2>
                 <form id="doseForm">
                     <div class="form-grid">
                         <div class="field-group">
-                            <label for="doseDate">التاريخ</label>
+                            <label for="doseDate" data-i18n="date">التاريخ</label>
                             <input type="date" id="doseDate" class="form-control" required>
                         </div>
 
                         <div class="field-group">
-                            <label>الوقت</label>
+                            <label data-i18n="time">الوقت</label>
                             <div class="time-picker-group">
                                 <input type="number" id="doseHour" class="form-control" min="1" max="12" placeholder="ساعة" required>
                                 <span class="time-sep">:</span>
                                 <input type="number" id="doseMinute" class="form-control" min="0" max="59" placeholder="دقيقة" required>
                                 <select id="doseAmpm" class="form-control">
-                                    <option value="AM">صباحاً (AM)</option>
-                                    <option value="PM">مساءً (PM)</option>
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
                     <div class="field-group margin-top-1">
-                        <label for="intervalSelect">فترة الجرعة:</label>
+                        <label for="intervalSelect" data-i18n="doseInterval">فترة الجرعة:</label>
                         <select id="intervalSelect" class="form-control">
-                            <option value="4">كل 4 ساعات</option>
-                            <option value="6">كل 6 ساعات</option>
-                            <option value="8">كل 8 ساعات</option>
-                            <option value="12" selected>كل 12 ساعة</option>
-                            <option value="24">كل 24 ساعة</option>
-                            <option value="custom">إدخال عدد ساعات مخصص...</option>
+                            <option value="4" data-i18n="every4h">كل 4 ساعات</option>
+                            <option value="6" data-i18n="every6h">كل 6 ساعات</option>
+                            <option value="8" data-i18n="every8h">كل 8 ساعات</option>
+                            <option value="12" selected data-i18n="every12h">كل 12 ساعة</option>
+                            <option value="24" data-i18n="every24h">كل 24 ساعة</option>
+                            <option value="custom" data-i18n="customHours">إدخال عدد ساعات مخصص...</option>
                         </select>
                     </div>
 
                     <div class="field-group margin-top-1 hidden" id="customIntervalGroup">
-                        <label for="customIntervalInput">عدد الساعات المخصص:</label>
-                        <input type="number" id="customIntervalInput" class="form-control" min="0.5" step="0.5" placeholder="مثال: 5">
+                        <label for="customIntervalInput" data-i18n="customHoursLabel">عدد الساعات المخصص:</label>
+                        <input type="number" id="customIntervalInput" class="form-control" min="0.1" step="0.1" placeholder="مثال: 5">
                     </div>
 
                     <div class="button-group margin-top-1-5">
-                        <button type="submit" class="btn btn-primary">💾 حفظ الجرعة</button>
-                        <button type="button" id="takeNowBtn" class="btn btn-accent">💊 أخذت الدواء الآن</button>
+                        <button type="submit" class="btn btn-primary">💾 <span data-i18n="saveDose">حفظ الجرعة</span></button>
+                        <button type="button" id="takeNowBtn" class="btn btn-accent">💊 <span data-i18n="tookNow">أخذت الدواء الآن</span></button>
                     </div>
                 </form>
             </section>
 
+            <!-- Results Grid -->
             <section class="results-grid">
                 <div class="card result-card">
                     <div class="card-icon">📅</div>
                     <div class="card-info">
-                        <span class="card-label">آخر جرعة</span>
+                        <span class="card-label" data-i18n="lastDose">آخر جرعة</span>
                         <span id="lastDoseVal" class="card-value">--</span>
                     </div>
-                    <button id="editLastDoseBtn" class="btn-text hidden">تعديل</button>
+                    <button id="editLastDoseBtn" class="btn-text hidden" data-i18n="edit">تعديل</button>
                 </div>
 
                 <div class="card result-card">
                     <div class="card-icon">⏱️</div>
                     <div class="card-info">
-                        <span class="card-label">الوقت منذ آخر جرعة</span>
+                        <span class="card-label" data-i18n="timeSinceLast">الوقت منذ آخر جرعة</span>
                         <span id="timeSinceVal" class="card-value">--</span>
                     </div>
                 </div>
@@ -108,7 +141,7 @@
                 <div class="card result-card">
                     <div class="card-icon">⏰</div>
                     <div class="card-info">
-                        <span class="card-label">الجرعة القادمة</span>
+                        <span class="card-label" data-i18n="nextDose">الجرعة القادمة</span>
                         <span id="nextDoseVal" class="card-value">--</span>
                     </div>
                 </div>
@@ -116,64 +149,88 @@
                 <div class="card result-card highlight-card" id="remainingCard">
                     <div class="card-icon">⏳</div>
                     <div class="card-info">
-                        <span class="card-label">الوقت المتبقي</span>
+                        <span class="card-label" data-i18n="timeRemaining">الوقت المتبقي</span>
                         <span id="timeRemainingVal" class="card-value">--</span>
                     </div>
                 </div>
             </section>
 
+            <!-- Action Quick Buttons -->
+            <div id="doseTakenActionBox" class="margin-top-1 hidden">
+                <button id="confirmDoseTakenBtn" class="btn btn-success-large">✔ <span data-i18n="confirmDoseTaken">تم أخذ الجرعة الآن</span></button>
+            </div>
+
+            <!-- Progress Bar Card -->
+            <section class="card margin-top-1">
+                <div class="progress-header">
+                    <span class="card-label" data-i18n="progress">نسبة الوقت المنقضي للجرعة القادمة</span>
+                    <span id="progressText" class="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="progressBarFill" class="progress-bar-fill"></div>
+                </div>
+            </section>
+
+            <!-- Utility Row -->
+            <div class="margin-top-1">
+                <button id="copyInfoBtn" class="btn btn-outline btn-full">📋 <span data-i18n="copyDoseInfo">نسخ معلومات الجرعة للحافظة</span></button>
+            </div>
+
+            <!-- History Card -->
             <section class="history-card card margin-top-1-5">
                 <div class="history-header">
-                    <h2>سجل آخر 20 جرعة</h2>
-                    <button id="deleteLastDoseBtn" class="btn btn-small btn-outline-danger">حذف أحدث جرعة</button>
+                    <h2 data-i18n="historyTitle">سجل آخر 20 جرعة</h2>
+                    <button id="deleteLastDoseBtn" class="btn btn-small btn-outline-danger" data-i18n="deleteLatest">حذف أحدث جرعة</button>
                 </div>
                 <div class="table-wrapper">
                     <table class="history-table">
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>تاريخ ووقت الجرعة</th>
-                                <th>الفترة</th>
+                                <th data-i18n="doseDateTime">تاريخ ووقت الجرعة</th>
+                                <th data-i18n="interval">الفترة</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody">
                             <tr>
-                                <td colspan="3" class="text-center">لا توجد جرعات مسجلة لهذا الدواء.</td>
+                                <td colspan="3" class="text-center" data-i18n="noDoses">لا توجد جرعات مسجلة لهذا الدواء.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
+            <!-- Danger Zone -->
             <div class="danger-zone margin-top-1-5">
-                <button id="clearDataBtn" class="btn btn-danger">مسح جميع البيانات والبدء من جديد</button>
+                <button id="clearDataBtn" class="btn btn-danger">🗑️ <span data-i18n="clearAllData">مسح البيانات والبدء من جديد</span></button>
             </div>
         </main>
     </div>
 
+    <!-- Dialogs -->
     <dialog id="addMedDialog" class="md-dialog">
         <form method="dialog" id="addMedForm">
-            <h3>إضافة دواء جديد</h3>
+            <h3 data-i18n="addNewMed">إضافة دواء جديد</h3>
             <div class="field-group margin-top-1">
-                <label for="newMedName">اسم الدواء:</label>
-                <input type="text" id="newMedName" class="form-control" required placeholder="مثلاً: Panadol">
+                <label for="newMedName" data-i18n="medName">اسم الدواء:</label>
+                <input type="text" id="newMedName" class="form-control" required placeholder="Panadol / Augmentin">
             </div>
             <div class="dialog-actions margin-top-1-5">
-                <button type="button" id="cancelDialogBtn" class="btn btn-secondary">إلغاء</button>
-                <button type="submit" class="btn btn-primary">إضافة</button>
+                <button type="button" id="cancelDialogBtn" class="btn btn-secondary" data-i18n="cancel">إلغاء</button>
+                <button type="submit" class="btn btn-primary" data-i18n="add">إضافة</button>
             </div>
         </form>
     </dialog>
 
     <dialog id="editDoseDialog" class="md-dialog">
         <form method="dialog" id="editDoseForm">
-            <h3>تعديل وقت آخر جرعة</h3>
+            <h3 data-i18n="editLastDose">تعديل وقت آخر جرعة</h3>
             <div class="field-group margin-top-1">
-                <label for="editDoseDate">التاريخ:</label>
+                <label for="editDoseDate" data-i18n="date">التاريخ:</label>
                 <input type="date" id="editDoseDate" class="form-control" required>
             </div>
             <div class="field-group margin-top-1">
-                <label>الوقت:</label>
+                <label data-i18n="time">الوقت:</label>
                 <div class="time-picker-group">
                     <input type="number" id="editDoseHour" class="form-control" min="1" max="12" required>
                     <span class="time-sep">:</span>
@@ -185,13 +242,27 @@
                 </div>
             </div>
             <div class="dialog-actions margin-top-1-5">
-                <button type="button" id="cancelEditDialogBtn" class="btn btn-secondary">إلغاء</button>
-                <button type="submit" class="btn btn-primary">حفظ التعديل</button>
+                <button type="button" id="cancelEditDialogBtn" class="btn btn-secondary" data-i18n="cancel">إلغاء</button>
+                <button type="submit" class="btn btn-primary" data-i18n="saveEdit">حفظ التعديل</button>
             </div>
         </form>
     </dialog>
 
+    <dialog id="aboutDialog" class="md-dialog">
+        <div class="about-content">
+            <h3>💊 Med Hours</h3>
+            <p><strong><span data-i18n="version">رقم الإصدار</span>:</strong> 1.1.0</p>
+            <p><strong><span data-i18n="developer">المطور</span>:</strong> Med Hours Team</p>
+            <p><strong><span data-i18n="lastUpdated">تاريخ آخر تحديث</span>:</strong> 29/07/2026</p>
+            <p><strong>GitHub:</strong> <a href="https://github.com" target="_blank" rel="noopener">Project Repository</a></p>
+            <p class="margin-top-1" data-i18n="aboutDesc">تطبيق PWA متكامل يساعدك على تتبع مواعيد جرعات أدويتك بدقة، ويعمل كلياً بدون اتصال بالإنترنت.</p>
+            <div class="dialog-actions margin-top-1-5">
+                <button type="button" id="closeAboutBtn" class="btn btn-primary" data-i18n="close">إغلاق</button>
+            </div>
+        </div>
+    </dialog>
+
     <script src="script.js"></script>
 </body>
-            </html>
-                        
+    </html>
+
