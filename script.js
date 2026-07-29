@@ -1,63 +1,172 @@
 const lastDoseElement = document.getElementById("lastDose");
 const elapsedElement = document.getElementById("elapsed");
-const saveButton = document.getElementById("saveDose");
 
-// عرض الوقت بصيغة 10:30 ص / 05:04 م
+const saveDoseButton = document.getElementById("saveDose");
+const saveManualButton = document.getElementById("saveManual");
+
+const hourSelect = document.getElementById("hour");
+const minuteSelect = document.getElementById("minute");
+const ampmSelect = document.getElementById("ampm");
+
+
+// تحويل الوقت إلى صيغة عربية
 function formatTime(date) {
+
     return date.toLocaleTimeString("ar-IQ", {
         hour: "2-digit",
         minute: "2-digit"
     });
+
 }
 
-// تحديث الوقت المنقضي
-function updateElapsed() {
 
-    const saved = localStorage.getItem("lastDose");
+// حفظ الوقت
+function saveTime(date) {
 
-    if (!saved) {
-        lastDoseElement.textContent = "لا توجد بيانات";
-        elapsedElement.textContent = "--";
-        return;
-    }
+    localStorage.setItem(
+        "lastDose",
+        date.toISOString()
+    );
 
-    const lastDate = new Date(saved);
+    updateTime();
 
-    lastDoseElement.textContent = formatTime(lastDate);
+}
+
+
+// زر أخذ الدواء الآن
+saveDoseButton.addEventListener("click", () => {
 
     const now = new Date();
 
-    const diff = now - lastDate;
-
-    const totalMinutes = Math.floor(diff / 60000);
-
-    const hours = Math.floor(totalMinutes / 60);
-
-    const minutes = totalMinutes % 60;
-
-    elapsedElement.textContent =
-        `${hours} ساعة و ${minutes} دقيقة`;
-}
-
-// عند الضغط على الزر
-saveButton.addEventListener("click", () => {
-
-    const now = new Date();
-
-    localStorage.setItem("lastDose", now.toISOString());
-
-    updateElapsed();
+    saveTime(now);
 
 });
 
+
+// زر حفظ الوقت اليدوي
+saveManualButton.addEventListener("click", () => {
+
+
+    let hour = Number(hourSelect.value);
+
+    let minute = Number(minuteSelect.value);
+
+    let ampm = ampmSelect.value;
+
+
+    const now = new Date();
+
+
+    if (ampm === "PM" && hour !== 12) {
+
+        hour += 12;
+
+    }
+
+
+    if (ampm === "AM" && hour === 12) {
+
+        hour = 0;
+
+    }
+
+
+    const selectedTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        hour,
+        minute
+    );
+
+
+    saveTime(selectedTime);
+
+
+});
+
+
+
+// تحديث العداد
+function updateTime() {
+
+
+    const saved = localStorage.getItem("lastDose");
+
+
+    if (!saved) {
+
+        lastDoseElement.textContent = "لا توجد بيانات";
+
+        elapsedElement.textContent = "--";
+
+        return;
+
+    }
+
+
+    const lastDose = new Date(saved);
+
+
+    lastDoseElement.textContent =
+        formatTime(lastDose);
+
+
+
+    const now = new Date();
+
+
+    let difference = now - lastDose;
+
+
+
+    if (difference < 0) {
+
+        difference = 0;
+
+    }
+
+
+    const totalMinutes =
+        Math.floor(difference / 60000);
+
+
+
+    const hours =
+        Math.floor(totalMinutes / 60);
+
+
+
+    const minutes =
+        totalMinutes % 60;
+
+
+
+    elapsedElement.textContent =
+        `${hours} ساعة و ${minutes} دقيقة`;
+
+}
+
+
+
+// تحديث عند فتح التطبيق
+updateTime();
+
+
 // تحديث كل دقيقة
-updateElapsed();
+setInterval(updateTime, 60000);
 
-setInterval(updateElapsed, 60000);
 
-// تسجيل Service Worker
+
+// تشغيل PWA
 if ("serviceWorker" in navigator) {
+
     window.addEventListener("load", () => {
-        navigator.serviceWorker.register("service-worker.js");
+
+        navigator.serviceWorker.register(
+            "service-worker.js"
+        );
+
     });
+
 }
