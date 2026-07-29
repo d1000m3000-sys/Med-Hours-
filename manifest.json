@@ -1,7 +1,7 @@
 {
-  "name": "Med Hours - حاسبة جرعات الدواء",
+  "name": "Med Hours v1.1 - حاسبة جرعات الدواء",
   "short_name": "Med Hours",
-  "description": "تطبيق يساعدك على معرفة الوقت منذ آخر جرعة دواء وموعد الجرعة القادمة بكل دقة.",
+  "description": "تطبيق متكامل لمتابعة وقت آخر جرعة دواء وموعد الجرعة القادمة بكل دقة وبدون إنترنت.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#fafdfb",
