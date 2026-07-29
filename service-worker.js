@@ -1,25 +1,101 @@
 const CACHE_NAME = "med-hours-v1";
 
+
 const FILES_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./style.css",
-  "./script.js",
-  "./manifest.json"
+
+    "./",
+
+    "./index.html",
+
+    "./style.css",
+
+    "./script.js",
+
+    "./manifest.json"
+
 ];
 
+
+
+// تثبيت التطبيق وحفظ الملفات
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(FILES_TO_CACHE);
-    })
-  );
+
+
+    event.waitUntil(
+
+        caches.open(CACHE_NAME)
+
+        .then(cache => {
+
+            return cache.addAll(FILES_TO_CACHE);
+
+        })
+
+    );
+
+
 });
 
+
+
+
+// تشغيل التطبيق من الذاكرة
 self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
-  );
+
+
+    event.respondWith(
+
+
+        caches.match(event.request)
+
+        .then(response => {
+
+
+            return response || fetch(event.request);
+
+
+        })
+
+
+    );
+
+
+});
+
+
+
+
+// تحديث النسخة القديمة
+self.addEventListener("activate", event => {
+
+
+    event.waitUntil(
+
+        caches.keys().then(keys => {
+
+
+            return Promise.all(
+
+                keys.map(key => {
+
+
+                    if (key !== CACHE_NAME) {
+
+
+                        return caches.delete(key);
+
+
+                    }
+
+
+                })
+
+            );
+
+
+        })
+
+    );
+
+
 });
