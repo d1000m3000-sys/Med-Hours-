@@ -1,15 +1,151 @@
-const STORAGE_KEY = 'med_hours_app_data_v1';
+const STORAGE_KEY = 'med_hours_app_v1_1';
+
+const translations = {
+    ar: {
+        subtitle: "احسب وقت الجرعات بسهولة",
+        chooseThemeColor: "اختر لون التطبيق:",
+        selectMed: "اختر الدواء الحالي:",
+        newMed: "دواء جديد",
+        recordDose: "تسجيل الجرعة",
+        date: "التاريخ",
+        time: "الوقت",
+        doseInterval: "فترة الجرعة:",
+        every4h: "كل 4 ساعات",
+        every6h: "كل 6 ساعات",
+        every8h: "كل 8 ساعات",
+        every12h: "كل 12 ساعة",
+        every24h: "كل 24 ساعة",
+        customHours: "إدخال عدد ساعات مخصص...",
+        customHoursLabel: "عدد الساعات المخصص:",
+        saveDose: "حفظ الجرعة",
+        tookNow: "أخذت الدواء الآن",
+        lastDose: "آخر جرعة",
+        timeSinceLast: "الوقت منذ آخر جرعة",
+        nextDose: "الجرعة القادمة",
+        timeRemaining: "الوقت المتبقي",
+        confirmDoseTaken: "تم أخذ الجرعة الآن",
+        progress: "نسبة الوقت المنقضي للجرعة القادمة",
+        copyDoseInfo: "نسخ معلومات الجرعة للحافظة",
+        historyTitle: "سجل آخر 20 جرعة",
+        deleteLatest: "حذف أحدث جرعة",
+        doseDateTime: "تاريخ ووقت الجرعة",
+        interval: "الفترة",
+        noDoses: "لا توجد جرعات مسجلة لهذا الدواء.",
+        clearAllData: "مسح جميع البيانات والبدء من جديد",
+        addNewMed: "إضافة دواء جديد",
+        medName: "اسم الدواء:",
+        cancel: "إلغاء",
+        add: "إضافة",
+        editLastDose: "تعديل وقت آخر جرعة",
+        saveEdit: "حفظ التعديل",
+        edit: "تعديل",
+        dueNow: "💊 حان موعد الجرعة",
+        version: "رقم الإصدار",
+        developer: "المطور",
+        lastUpdated: "تاريخ آخر تحديث",
+        aboutDesc: "تطبيق PWA متكامل يساعدك على تتبع مواعيد جرعات أدويتك بدقة، ويعمل كلياً بدون اتصال بالإنترنت.",
+        close: "إغلاق",
+        copied: "تم نسخ معلومات الجرعة للحافظة!",
+        installApp: "تثبيت التطبيق",
+        hours: "ساعة",
+        minutes: "دقيقة",
+        seconds: "ثانية",
+        and: "و"
+    },
+    en: {
+        subtitle: "Track medication doses easily",
+        chooseThemeColor: "App Theme Color:",
+        selectMed: "Select Current Medication:",
+        newMed: "New Medication",
+        recordDose: "Record Dose",
+        date: "Date",
+        time: "Time",
+        doseInterval: "Dose Interval:",
+        every4h: "Every 4 hours",
+        every6h: "Every 6 hours",
+        every8h: "Every 8 hours",
+        every12h: "Every 12 hours",
+        every24h: "Every 24 hours",
+        customHours: "Enter custom hours...",
+        customHoursLabel: "Custom Hours:",
+        saveDose: "Save Dose",
+        tookNow: "Took Medicine Now",
+        lastDose: "Last Dose",
+        timeSinceLast: "Time Since Last Dose",
+        nextDose: "Next Dose",
+        timeRemaining: "Time Remaining",
+        confirmDoseTaken: "Dose Taken Now",
+        progress: "Time Elapsed Percentage",
+        copyDoseInfo: "Copy Dose Info to Clipboard",
+        historyTitle: "Last 20 Doses History",
+        deleteLatest: "Delete Latest Dose",
+        doseDateTime: "Dose Date & Time",
+        interval: "Interval",
+        noDoses: "No doses recorded for this medicine.",
+        clearAllData: "Clear All Data & Reset",
+        addNewMed: "Add New Medication",
+        medName: "Medication Name:",
+        cancel: "Cancel",
+        add: "Add",
+        editLastDose: "Edit Last Dose Time",
+        saveEdit: "Save Changes",
+        edit: "Edit",
+        dueNow: "💊 Time for your dose",
+        version: "Version",
+        developer: "Developer",
+        lastUpdated: "Last Updated",
+        aboutDesc: "A complete PWA app to help you track your medication schedules precisely, fully functional offline.",
+        close: "Close",
+        copied: "Dose info copied to clipboard!",
+        installApp: "Install App",
+        hours: "hrs",
+        minutes: "mins",
+        seconds: "secs",
+        and: "and"
+    }
+};
 
 let appState = {
+    lang: 'ar',
     theme: 'light',
+    colorScheme: 'default',
     activeMedId: null,
     medications: []
 };
 
 let timerInterval = null;
+let deferredPrompt = null;
+let preNotificationTriggered = false;
+let dueNotificationTriggered = false;
+
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+function playBeepSound() {
+    try {
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 587.33; // D5
+        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1.2);
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start();
+        osc.stop(audioContext.currentTime + 1.2);
+    } catch (e) {
+        console.log("Audio play error", e);
+    }
+}
 
 const el = {
+    splashScreen: document.getElementById('splashScreen'),
+    installAppBtn: document.getElementById('installAppBtn'),
+    langToggleBtn: document.getElementById('langToggleBtn'),
     themeToggleBtn: document.getElementById('themeToggleBtn'),
+    aboutAppBtn: document.getElementById('aboutAppBtn'),
     medSelect: document.getElementById('medSelect'),
     addMedBtn: document.getElementById('addMedBtn'),
     deleteMedBtn: document.getElementById('deleteMedBtn'),
@@ -27,6 +163,11 @@ const el = {
     nextDoseVal: document.getElementById('nextDoseVal'),
     timeRemainingVal: document.getElementById('timeRemainingVal'),
     remainingCard: document.getElementById('remainingCard'),
+    doseTakenActionBox: document.getElementById('doseTakenActionBox'),
+    confirmDoseTakenBtn: document.getElementById('confirmDoseTakenBtn'),
+    progressText: document.getElementById('progressText'),
+    progressBarFill: document.getElementById('progressBarFill'),
+    copyInfoBtn: document.getElementById('copyInfoBtn'),
     editLastDoseBtn: document.getElementById('editLastDoseBtn'),
     historyTableBody: document.getElementById('historyTableBody'),
     deleteLastDoseBtn: document.getElementById('deleteLastDoseBtn'),
@@ -41,23 +182,30 @@ const el = {
     editDoseHour: document.getElementById('editDoseHour'),
     editDoseMinute: document.getElementById('editDoseMinute'),
     editDoseAmpm: document.getElementById('editDoseAmpm'),
-    cancelEditDialogBtn: document.getElementById('cancelEditDialogBtn')
+    cancelEditDialogBtn: document.getElementById('cancelEditDialogBtn'),
+    aboutDialog: document.getElementById('aboutDialog'),
+    closeAboutBtn: document.getElementById('closeAboutBtn')
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
     registerServiceWorker();
     requestNotificationPermission();
+
+    setTimeout(() => {
+        el.splashScreen.style.opacity = '0';
+        setTimeout(() => el.splashScreen.classList.add('hidden'), 500);
+    }, 1000);
 });
 
 function initApp() {
     loadState();
-    setupTheme();
+    applySettings();
     setupEventListeners();
     setDefaultInputs();
     renderMedicationOptions();
     updateUI();
-    
+
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(updateUI, 1000);
 }
@@ -66,9 +214,8 @@ function loadState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         try {
-            appState = JSON.parse(saved);
+            appState = Object.assign({}, appState, JSON.parse(saved));
         } catch (e) {
-            console.error('Failed to parse state:', e);
             createDefaultState();
         }
     } else {
@@ -79,7 +226,9 @@ function loadState() {
 function createDefaultState() {
     const defaultMedId = 'med_' + Date.now();
     appState = {
+        lang: 'ar',
         theme: 'light',
+        colorScheme: 'default',
         activeMedId: defaultMedId,
         medications: [
             {
@@ -97,20 +246,85 @@ function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
 
-function setupTheme() {
+function applySettings() {
+    document.documentElement.setAttribute('lang', appState.lang);
+    document.documentElement.setAttribute('dir', appState.lang === 'ar' ? 'rtl' : 'ltr');
     document.documentElement.setAttribute('data-theme', appState.theme);
-    el.themeToggleBtn.querySelector('.theme-icon').textContent = appState.theme === 'dark' ? '☀️' : '🌙';
+    document.documentElement.setAttribute('data-color', appState.colorScheme);
+
+    el.themeToggleBtn.textContent = appState.theme === 'dark' ? '☀️' : '🌙';
+
+    document.querySelectorAll('.color-btn').forEach(btn => {
+        if (btn.dataset.color === appState.colorScheme) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    applyLanguage();
+}
+
+function applyLanguage() {
+    const langObj = translations[appState.lang];
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (langObj[key]) {
+            element.textContent = langObj[key];
+        }
+    });
 }
 
 function setupEventListeners() {
+    el.langToggleBtn.addEventListener('click', () => {
+        appState.lang = appState.lang === 'ar' ? 'en' : 'ar';
+        saveState();
+        applySettings();
+        updateUI();
+    });
+
     el.themeToggleBtn.addEventListener('click', () => {
         appState.theme = appState.theme === 'light' ? 'dark' : 'light';
         saveState();
-        setupTheme();
+        applySettings();
+    });
+
+    document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            appState.colorScheme = e.target.dataset.color;
+            saveState();
+            applySettings();
+        });
+    });
+
+    el.aboutAppBtn.addEventListener('click', () => {
+        el.aboutDialog.showModal();
+    });
+
+    el.closeAboutBtn.addEventListener('click', () => {
+        el.aboutDialog.close();
+    });
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        el.installAppBtn.classList.remove('hidden');
+    });
+
+    el.installAppBtn.addEventListener('click', () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                deferredPrompt = null;
+                el.installAppBtn.classList.add('hidden');
+            });
+        }
     });
 
     el.medSelect.addEventListener('change', (e) => {
         appState.activeMedId = e.target.value;
+        preNotificationTriggered = false;
+        dueNotificationTriggered = false;
         saveState();
         loadActiveMedToForm();
         updateUI();
@@ -147,11 +361,15 @@ function setupEventListeners() {
 
     el.deleteMedBtn.addEventListener('click', () => {
         if (appState.medications.length <= 1) {
-            alert('يجب أن يكون لديك دواء واحد على الأقل في التطبيق.');
+            alert(appState.lang === 'ar' ? 'يجب أن يكون لديك دواء واحد على الأقل.' : 'You must have at least one medication.');
             return;
         }
         const activeMed = getActiveMed();
-        if (confirm(`هل أنت تأكد من حذف دواء "${activeMed.name}" بالكامل؟`)) {
+        const confirmMsg = appState.lang === 'ar' 
+            ? `هل أنت تأكد من حذف دواء "${activeMed.name}" بالكامل؟`
+            : `Are you sure you want to delete "${activeMed.name}"?`;
+        
+        if (confirm(confirmMsg)) {
             appState.medications = appState.medications.filter(m => m.id !== appState.activeMedId);
             appState.activeMedId = appState.medications[0].id;
             saveState();
@@ -175,16 +393,24 @@ function setupEventListeners() {
     });
 
     el.takeNowBtn.addEventListener('click', () => {
-        const now = new Date();
-        populateFormWithDate(now);
+        populateFormWithDate(new Date());
+        saveDoseFromInputs();
+    });
+
+    el.confirmDoseTakenBtn.addEventListener('click', () => {
+        populateFormWithDate(new Date());
         saveDoseFromInputs();
     });
 
     el.deleteLastDoseBtn.addEventListener('click', () => {
         const activeMed = getActiveMed();
         if (!activeMed || activeMed.doses.length === 0) return;
-        if (confirm('هل ترغب في حذف آخر جرعة مسجلة؟')) {
+        
+        const confirmMsg = appState.lang === 'ar' ? 'هل ترغب في حذف أحدث جرعة؟' : 'Delete latest dose?';
+        if (confirm(confirmMsg)) {
             activeMed.doses.pop();
+            preNotificationTriggered = false;
+            dueNotificationTriggered = false;
             saveState();
             updateUI();
         }
@@ -231,16 +457,37 @@ function setupEventListeners() {
         if (timestamp) {
             activeMed.doses[activeMed.doses.length - 1] = timestamp;
             activeMed.doses.sort((a, b) => a - b);
+            preNotificationTriggered = false;
+            dueNotificationTriggered = false;
             saveState();
             updateUI();
             el.editDoseDialog.close();
         }
     });
 
+    el.copyInfoBtn.addEventListener('click', () => {
+        const activeMed = getActiveMed();
+        if (!activeMed || activeMed.doses.length === 0) return;
+
+        const lastTs = activeMed.doses[activeMed.doses.length - 1];
+        const nextTs = lastTs + (activeMed.intervalHours * 3600000);
+
+        const textToCopy = `💊 ${activeMed.name}\n${translations[appState.lang].lastDose}: ${formatDateTime(lastTs)}\n${translations[appState.lang].nextDose}: ${formatDateTime(nextTs)}`;
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            alert(translations[appState.lang].copied);
+        });
+    });
+
     el.clearDataBtn.addEventListener('click', () => {
-        if (confirm('تنبيه: سيتم مسح جميع الأدوية والجرعات كلياً. هل أنت متأكد؟')) {
+        const confirmMsg = appState.lang === 'ar' 
+            ? 'تنبيه هام: سيتم مسح كافة البيانات والأدوية المسجلة كلياً. هل أنت متاكد؟'
+            : 'Warning: All medications and recorded doses will be deleted. Are you sure?';
+        
+        if (confirm(confirmMsg)) {
             localStorage.removeItem(STORAGE_KEY);
             createDefaultState();
+            applySettings();
             renderMedicationOptions();
             setDefaultInputs();
             updateUI();
@@ -324,7 +571,7 @@ function saveDoseFromInputs() {
     }
 
     if (!interval || interval <= 0) {
-        alert('رجاءً أدخل فترة زمنية صحيحة بالاساعات.');
+        alert(appState.lang === 'ar' ? 'يرجى إدخال فترة زمنية صحيحة بالساعات.' : 'Please enter a valid interval in hours.');
         return;
     }
 
@@ -335,156 +582,4 @@ function saveDoseFromInputs() {
         el.doseAmpm.value
     );
 
-    if (!timestamp) {
-        alert('رجاءً تأكد من صحة التاريخ والوقت المدخل.');
-        return;
-    }
-
-    activeMed.intervalHours = interval;
-    activeMed.doses.push(timestamp);
-    activeMed.doses.sort((a, b) => a - b);
-
-    if (activeMed.doses.length > 20) {
-        activeMed.doses = activeMed.doses.slice(-20);
-    }
-
-    saveState();
-    updateUI();
-}
-
-function updateUI() {
-    const activeMed = getActiveMed();
-    if (!activeMed) return;
-
-    const doses = activeMed.doses;
-    if (doses.length === 0) {
-        el.lastDoseVal.textContent = '--';
-        el.timeSinceVal.textContent = '--';
-        el.nextDoseVal.textContent = '--';
-        el.timeRemainingVal.textContent = '--';
-        el.remainingCard.classList.remove('due-now-alert');
-        el.editLastDoseBtn.classList.add('hidden');
-        renderHistoryTable([]);
-        return;
-    }
-
-    el.editLastDoseBtn.classList.remove('hidden');
-
-    const lastDoseTimestamp = doses[doses.length - 1];
-    const now = new Date().getTime();
-
-    el.lastDoseVal.textContent = formatDateFormatted(lastDoseTimestamp);
-
-    const diffSince = Math.max(0, now - lastDoseTimestamp);
-    el.timeSinceVal.textContent = formatDuration(diffSince);
-
-    const intervalMs = activeMed.intervalHours * 60 * 60 * 1000;
-    const nextDoseTimestamp = lastDoseTimestamp + intervalMs;
-
-    el.nextDoseVal.textContent = formatTimeOnly(nextDoseTimestamp);
-
-    const diffRemaining = nextDoseTimestamp - now;
-
-    if (diffRemaining <= 0) {
-        el.timeRemainingVal.textContent = '💊 حان موعد الجرعة';
-        el.remainingCard.classList.add('due-now-alert');
-        triggerDoseNotification(activeMed.name);
-    } else {
-        el.timeRemainingVal.textContent = formatDuration(diffRemaining);
-        el.remainingCard.classList.remove('due-now-alert');
-    }
-
-    renderHistoryTable(doses, activeMed.intervalHours);
-}
-
-function renderHistoryTable(doses, interval) {
-    el.historyTableBody.innerHTML = '';
-    if (doses.length === 0) {
-        el.historyTableBody.innerHTML = '<tr><td colspan="3" class="text-center">لا توجد جرعات مسجلة لهذا الدواء.</td></tr>';
-        return;
-    }
-
-    const reversed = [...doses].reverse();
-    reversed.forEach((ts, idx) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${doses.length - idx}</td>
-            <td>${formatDateFormatted(ts)}</td>
-            <td>كل ${interval} ساعة</td>
-        `;
-        el.historyTableBody.appendChild(row);
-    });
-}
-
-function formatDateFormatted(ts) {
-    const d = new Date(ts);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-
-    let hours = d.getHours();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-
-    return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
-}
-
-function formatTimeOnly(ts) {
-    const d = new Date(ts);
-    let hours = d.getHours();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-
-    return `${hours}:${minutes} ${ampm}`;
-}
-
-function formatDuration(ms) {
-    const totalMinutes = Math.floor(ms / (1000 * 60));
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-
-    let res = '';
-    if (hours > 0) {
-        res += `${hours} ساعة `;
-    }
-    res += `و${minutes} دقيقة`;
-    return res;
-}
-
-let notificationSentForTimestamp = null;
-
-function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
-}
-
-function triggerDoseNotification(medName) {
-    if ('Notification' in window && Notification.permission === 'granted') {
-        const activeMed = getActiveMed();
-        if (!activeMed || activeMed.doses.length === 0) return;
-        const lastDose = activeMed.doses[activeMed.doses.length - 1];
-
-        if (notificationSentForTimestamp !== lastDose) {
-            new Notification('Med Hours 💊', {
-                body: `حان موعد جرعة دواء: ${medName}`,
-                icon: 'icons/icon-192.png',
-                dir: 'rtl'
-            });
-            notificationSentForTimestamp = lastDose;
-        }
-    }
-}
-
-function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js')
-            .then(reg => console.log('Service Worker Registered', reg))
-            .catch(err => console.error('Service Worker Registration Failed', err));
-    }
-            }
-            
+    if
