@@ -1,12 +1,22 @@
 {
   "name": "Med Hours",
-  "short_name": "MedHours",
-  "description": "احسب الوقت منذ آخر جرعة دواء",
+  "short_name": "Med Hours",
+  "description": "تطبيق لحساب وقت الجرعات الدوائية والجرعة القادمة",
+  
   "start_url": "./",
+  
   "display": "standalone",
-  "background_color": "#f4f7fb",
-  "theme_color": "#2563eb",
+  
   "orientation": "portrait",
+
+  "background_color": "#f4f7fb",
+
+  "theme_color": "#2563eb",
+
+  "lang": "ar",
+
+  "dir": "rtl",
+
   "icons": [
     {
       "src": "icons/icon-192.png",
